@@ -1,4 +1,4 @@
-distances nba
+Approximate Distance Traveled in the 2018-19 regular season
 ================
 Lewis Pipkin
 7/10/2019
