@@ -31,6 +31,9 @@ coords=data.frame(
   DETlat=42.340972, DETlong=-83.056003,
   PHIlat=39.901070, PHIlong=-75.171242,
   INDlat=39.763899, INDlong=-86.155649
+  # ,
+  # LONDONlat=51.502615, LONDONlong=0.003539,
+  # MEXlat=19.497895, MEXlong=-99.175477
 )
 
 haversine.mi=function(tm1,tm2){
@@ -49,9 +52,12 @@ haversine.mi=function(tm1,tm2){
 }
 
 
-haversine.mi('ATL','DET')
-haversine.mi('ATL','MEM')
-
+# haversine.mi('CHI','MEX')
+# haversine.mi('SAS','MEX')
+# haversine.mi('ORL','MEX')
+# haversine.mi('UTA','MEX')
+# haversine.mi('wAS','LONDON')
+# haversine.mi('NYK','LONDON')
 coords %>% dplyr::select(ends_with("lat")) %>% names() %>% str_extract(".+(?=lat)") %>% sort() -> team_abbr
 
 team_dist <- matrix(rep(0,30*30),nrow=30,ncol=30)
@@ -88,8 +94,8 @@ ordered_table=function(x){
   table(x)[rev(order(table(x)))]
 }
 ordered_table(sched$slugTeamHome)
-
 ###
+# ds <- sched_by_team("NYK")
 # dist_log <- data.frame()
 # home_away <- data.frame()
 for(p in 1:length(team_abbr)){
@@ -107,9 +113,17 @@ for(p in 1:length(team_abbr)){
                           s)) %>% arrange(dateGame)
   }
   
-  # home_away[1:length(s$slugTeamHome == team),team] <- s$slugTeamHome == team
-  # home_away[which(s$dateGame == as.Date("2018-12-25")),team] <- ifelse(ind==T,home_away[team],NA)
+  if(team=="NYK"|team=='WAS'){
+    s[which(s$dateGame==as.Date("2019-01-11")),"slugTeamHome"] <- team
+  }
 
+  if(team=="ORL"|team=='UTA'){
+    s[which(s$dateGame==as.Date("2018-12-15")),"slugTeamHome"] <- team
+  }
+  
+  if(team=="ORL"|team=='CHI'){
+    s[which(s$dateGame==as.Date("2018-12-13")),"slugTeamHome"] <- team
+  }
   
     
   dist_counter <- 0
@@ -120,8 +134,20 @@ for(p in 1:length(team_abbr)){
   team_and_dist[p,"Team Name"] <- team
   team_and_dist[p,"Distance Traveled"] <- dist_counter
 }
-team_and_dist$above <- team_and_dist$`Distance Traveled` <= quantile(team_and_dist$`Distance Traveled`,.8)
+#ORL adjustment
+team_and_dist[22,"Distance Traveled"] <- team_and_dist[22,"Distance Traveled"] + haversine.mi("DAL","ORL") + 1282.669 + 1282.669
+#UTA adjustment
+team_and_dist[29,"Distance Traveled"] <- team_and_dist[29,"Distance Traveled"] + 1650.452 +742.3537
+#CHI adjustment
+team_and_dist[5,"Distance Traveled"] <- team_and_dist[5,"Distance Traveled"] + 1687.021 + 687.6291
+#WAS adjustment
+team_and_dist[30,"Distance Traveled"] <- team_and_dist[30,"Distance Traveled"] + 3669.791 + 3669.791
+#NYK adjustment
+team_and_dist[20,"Distance Traveled"] <- team_and_dist[20,"Distance Traveled"] + 3464.454 + 3464.454 + haversine.mi("GSW",'NYK')
 
+
+team_and_dist$above <- team_and_dist$`Distance Traveled` <= quantile(team_and_dist$`Distance Traveled`,.8)
+library(ggthemes)
 team_and_dist %>% ggplot(aes(x=reorder(`Team Name`,`Distance Traveled`),y=`Distance Traveled`,fill=above,label=round(`Distance Traveled`,0))) + 
   geom_bar(stat='identity') + 
   coord_flip() +
